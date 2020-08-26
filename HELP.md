@@ -48,8 +48,9 @@ Replace `ow` with the actual instance label.
 
 **Description** | **Example**
 ---|---
-// Latitude and Longitude (Decimal degree) | 48.8567,2.3508
 City name | Paris
 US zip | 10001
 UK postcode | SW1
 Canada postal code | G2J
+
+You can add 
