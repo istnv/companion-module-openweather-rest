@@ -3,7 +3,7 @@
 var rest_client 	= require('node-rest-client').Client;
 var instance_skel 	= require('../../instance_skel');
 var sharp			= require('sharp');
-const { rgb } = require('../../image');
+var rgb 			= require('../../image').rgb;
 var debug;
 var log;
 
