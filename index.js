@@ -273,9 +273,11 @@ instance.prototype.refresh = function () {
 				self.log('error', data.error.message);
 				self.status(self.STATUS_ERROR, data.error.message);
 				self.hasError = true;
-			} else {
+			} else if (data.cod == 200) {
 				self.status(self.STATUS_OK);
 				self.update_variables(data);
+			} else {
+				self.status(self.STATUS_ERROR, data.message);
 			}
 		});
 	}
