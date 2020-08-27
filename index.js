@@ -273,7 +273,7 @@ instance.prototype.refresh = function () {
 				self.log('error', data.error.message);
 				self.status(self.STATUS_ERROR, data.error.message);
 				self.hasError = true;
-			} else if (data.cod == 200) {
+			} else if (response.statusCode == 200) {
 				self.status(self.STATUS_OK);
 				self.update_variables(data);
 			} else {
@@ -293,6 +293,14 @@ instance.prototype.update_variables = function(data) {
 
 	self.weather = data;
 
+	Date.prototype.toHHMM = function() {
+		return ('00' + this.getHours()).slice(-2) + ':' + ('00' + this.getMinutes()).slice(-2);
+	}
+
+	Date.prototype.toMMDD_HHMM = function() { 
+		return ('00' + (this.getMonth() + 1)).slice(-2) + '-' + ('00' + this.getDate()).slice(-2) + ' ' + this.toHHMM();
+	}
+
 	for (var i in v) {
 		k = v[i].section;
 		switch (k) {
@@ -300,7 +308,7 @@ instance.prototype.update_variables = function(data) {
 			dv = data[v[i].data];
 			break;
 		case 'main':
-			dv = data.main[v[i].data] + self.C_DEGREE;
+			dv = Math.floor(data.main[v[i].data] + .49) + self.C_DEGREE;
 			break;
 		case 'sys':
 		case 'wind':
@@ -314,21 +322,22 @@ instance.prototype.update_variables = function(data) {
 		case 'internal':
 			if (i=='c_winddir') {
 				var d = data.wind.deg;
-				dv = self.C_WINDIR[Math.floor((d % 360) / 22.5)];
+				dv = self.C_WINDIR[Math.floor((d % 360) / 22.5 + 0.5)];
 			} else if (i=='c_day') {
 				dv = (dt > data.sys.sunrise && dt < data.sys.sunset);
+				self.isDay = dv;
 			}
 			break;
 		case 'time':
 			switch (i) {
 			case 'c_time':
-				dv = new Date((dt ) * 1000).toLocaleString();
+				dv = new Date(dt * 1000).toMMDD_HHMM();
 				break;
 			case 'c_sunrise':
-				dv = new Date(data.sys.sunrise * 1000).toLocaleTimeString();
+				dv = new Date(data.sys.sunrise * 1000).toHHMM();
 				break;
 			case 'c_sunset':
-				dv = new Date(data.sys.sunset * 1000).toLocaleTimeString();
+				dv = new Date(data.sys.sunset * 1000).toHHMM();
 			}
 			
 		case 'forecast':
