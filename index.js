@@ -57,7 +57,7 @@ instance.prototype.init = function () {
 	// other init methods
 	self.init_feedbacks();
 	self.init_connection();
-	//self.init_presets();
+	self.init_presets();
 };
 
 instance.prototype.updateConfig = function (config) {
@@ -75,7 +75,7 @@ instance.prototype.updateConfig = function (config) {
 	// ... and start again
 	self.init_feedbacks();
 	self.init_connection();
-	//self.init_presets();
+	self.init_presets();
 };
 
 instance.prototype.destroy = function () {
@@ -200,16 +200,12 @@ instance.prototype.init_presets = function () {
 			label: 'Condition Graphic & Current Temp',
 			bank: {
 				style: 'png',
-				text: '$(ow:c_temp)',
+				text: '$(ow:c_text)\\n$(ow:c_temp)',
 				size: '18',
 				color: rgb(255,255,255),
 				bgcolor: 0
 			},
 			actions: [
-				{
-					action: 'refresh',
-					options: {}
-				}
 			],
 			feedbacks: [
 				{
