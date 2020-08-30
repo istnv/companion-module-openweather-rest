@@ -81,6 +81,10 @@ instance.prototype.updateConfig = function (config) {
 instance.prototype.destroy = function () {
 	var self = this;
 
+	if (self.heartbeat) {
+		clearInterval(self.heartbeat);
+		delete self.heartbeat;
+	}
 	self.init_vars();
 	self.client = null;
 };
@@ -277,7 +281,10 @@ instance.prototype.refresh = function () {
 				self.status(self.STATUS_OK);
 				self.update_variables(data);
 			} else {
+				self.log('error',data.message);
 				self.status(self.STATUS_ERROR, data.message);
+				self.init_vars();
+				self.setVariable('l_name',data.message);
 			}
 		});
 	}
