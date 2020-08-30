@@ -44,13 +44,17 @@ Replace `ow` with the actual instance label.
 <sup>*</sup> Temperature variables include the degree (°) symbol
 
 ---
-<sup>**</sup>  You can enter one of the following for the weather location
+
+<sup>**</sup>  Enter one of the following for the weather location
 
 **Description** | **Example**
 ---|---
-City name | Paris
+City name | Paris<sup>***</sup> 
 US zip | 10001
 UK postcode | SW1
 Canada postal code | G2J
 
-You can add 
+
+<sup>***</sup> City name options:
+- Add a comma "," and a 2 character country code to specify which City: "Paris,FR"
+- Add a comma "," and a 2 character state code followed by another comma and a 2 character country code to specify which City: "Paris,TX,US"
