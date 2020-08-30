@@ -316,6 +316,9 @@ instance.prototype.update_variables = function(data) {
 		case 'sys':
 		case 'wind':
 			dv = data[k][v[i].data];
+			if (i=='c_wind') {
+				dv = Math.floor(dv * 10 + 4.9) / 10
+			}
 			break;
 		case 'weather':
 			dv = data.weather[0][v[i].data];
