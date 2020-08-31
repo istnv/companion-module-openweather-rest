@@ -160,7 +160,7 @@ instance.prototype.init_feedbacks = function () {
 				if (self.icons[self.iconID]) {
 					ret = { png64: self.icons[self.iconID] };
 					ret.bgcolor = (self.isDay ? rgb(200,200,200): rgb(16,16,16));
-					ret.color = (self.isDay ? rgb(32,32,32) : rgb(200,200,200));
+					ret.color = (self.isDay ? rgb(32,32,32) : rgb(168,168,168));
 				}
 				if (ret) {
 					return ret;
@@ -298,11 +298,11 @@ instance.prototype.update_variables = function(data) {
 
 	Date.prototype.toHHMM = function() {
 		return ('00' + this.getHours()).slice(-2) + ':' + ('00' + this.getMinutes()).slice(-2);
-	}
+	};
 
-	Date.prototype.toMMDD_HHMM = function() { 
+	Date.prototype.toMMDD_HHMM = function() {
 		return ('00' + (this.getMonth() + 1)).slice(-2) + '-' + ('00' + this.getDate()).slice(-2) + ' ' + this.toHHMM();
-	}
+	};
 
 	for (var i in v) {
 		k = v[i].section;
@@ -311,13 +311,13 @@ instance.prototype.update_variables = function(data) {
 			dv = data[v[i].data];
 			break;
 		case 'main':
-			dv = Math.floor(data.main[v[i].data] + .49) + self.C_DEGREE;
+			dv = Math.floor(data.main[v[i].data] + 0.49) + self.C_DEGREE;
 			break;
 		case 'sys':
 		case 'wind':
 			dv = data[k][v[i].data];
 			if (i=='c_wind') {
-				dv = Math.floor(dv * 10 + 4.9) / 10
+				dv = Math.floor(dv * 10 + 4.9) / 10;
 			}
 			break;
 		case 'weather':
@@ -344,8 +344,9 @@ instance.prototype.update_variables = function(data) {
 				break;
 			case 'c_sunset':
 				dv = new Date(data.sys.sunset * 1000).toHHMM();
+				break;
 			}
-			
+			break;
 		case 'forecast':
 			break;
 		}
@@ -365,7 +366,7 @@ instance.prototype.update_graphic = function(cond) {
 		} else {
 			self.client.get("http://openweathermap.org/img/wn/" + code + "@2x.png" , function (data, response) {
 				//
-				if (response.statusCode == 200) { 
+				if (response.statusCode == 200) {
 				sharp(new Buffer(data)).resize(72,72).png().toBuffer(function (err, buffer) {
 					self.icons[code] = buffer;
 					self.checkFeedbacks('icon');
