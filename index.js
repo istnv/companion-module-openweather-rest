@@ -41,6 +41,7 @@ function instance(system, id, config) {
 	instance_skel.apply(this, arguments);
 
 	// addUpdateScript would go here
+	self.init_actions();
 
 	return self;
 }
