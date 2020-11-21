@@ -86,7 +86,9 @@ instance.prototype.destroy = function () {
 		delete self.heartbeat;
 	}
 	self.init_vars();
-	self.client = null;
+	if (self.client) {
+		delete self.client;
+	}
 };
 
 
@@ -266,7 +268,6 @@ instance.prototype.refresh = function () {
 
 	// Only query if more than 1 minute since last poll
 	if (!self.hasError && self.lastPolled + 60000 < Date.now()) {
-		self.lastPolled = Date.now();
 		var url = self.base + "?q=" + self.config.location +"&units=" + units + "&appid=" + self.config.apikey;
 		self.client.get(url, function (data, response) {
 			if (data.error) {
@@ -282,6 +283,11 @@ instance.prototype.refresh = function () {
 				self.init_vars();
 				self.setVariable('l_name',data.message);
 			}
+			self.lastPolled = Date.now();
+		}).on('error', function (err) {
+			var emsg = err.message;
+			self.log('error', emsg);
+			self.status(self.STATUS_ERROR, emsg);
 		});
 	}
 };
@@ -365,15 +371,18 @@ instance.prototype.update_graphic = function(cond) {
 			self.checkFeedbacks('icon');
 		} else {
 			self.client.get("http://openweathermap.org/img/wn/" + code + "@2x.png" , function (data, response) {
-				//
 				if (response.statusCode == 200) {
-				sharp(new Buffer(data)).resize(72,72).png().toBuffer(function (err, buffer) {
-					self.icons[code] = buffer;
-					self.checkFeedbacks('icon');
-				  });
+					sharp(Buffer.from(data)).resize(72,72).png().toBuffer(function (err, buffer) {
+						self.icons[code] = buffer;
+						self.checkFeedbacks('icon');
+					});
 				}
 				// self.icons[code] = data.toString('base64');
 				// self.checkFeedbacks('icon');
+			}).on('error', function (err) {
+				var emsg = err.message;
+				self.log('error', emsg);
+				self.status(self.STATUS_ERROR, emsg);
 			});
 		}
 	}
