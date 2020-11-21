@@ -335,7 +335,7 @@ instance.prototype.update_variables = function(data) {
 		case 'internal':
 			if (i=='c_winddir') {
 				var d = data.wind.deg;
-				dv = self.C_WINDIR[Math.floor((d % 360) / 22.5 + 0.5)];
+				dv = self.C_WINDIR[Math.floor((d % 360) / 22.5 + 0.5) % 16];
 			} else if (i=='c_day') {
 				dv = (dt > data.sys.sunrise && dt < data.sys.sunset);
 				self.isDay = dv;
