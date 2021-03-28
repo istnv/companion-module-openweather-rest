@@ -2,13 +2,13 @@
 
 Weather information module for Bitfocus Companion
 
-Companion is a really nice bit of open source software which extends the functionality 
+Companion is a really nice bit of open source software which extends the functionality
 of Elgato Streamdeck devices.
 
 * **Companion**: https://bitfocus.io/companion/
 * **Streamdeck**: https://www.elgato.com/en/gaming/stream-deck
 
-Do you want current weather information on a button?<br>
+Do you want current weather information on a Companion button?<br>
 This module requires an active internet connection and you will need your own API key from <a href="https://openweathermap.org/home/sign_up" title="OpenWeather">OpenWeather.com</a>
 
 ## Feedback
@@ -20,7 +20,7 @@ This module requires an active internet connection and you will need your own AP
 * Region or State (if available)
 * Country
 * Local Time
-  
+
 **Current Information**
 * Time updated
 * Temperature<sup>1</sup>
@@ -28,6 +28,6 @@ This module requires an active internet connection and you will need your own AP
 * Conditions
 * Wind speed<sup>1</sup>
 * Wind direction
-  
+
 
 <sup>1</sup>Choice of metric or imperial units

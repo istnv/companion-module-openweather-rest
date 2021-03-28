@@ -3,7 +3,6 @@
 var rest_client 	= require('node-rest-client').Client;
 var instance_skel 	= require('../../instance_skel');
 var sharp			= require('sharp');
-var rgb 			= require('../../image').rgb;
 var debug;
 var log;
 
@@ -162,8 +161,8 @@ instance.prototype.init_feedbacks = function () {
 				var ret;
 				if (self.icons[self.iconID]) {
 					ret = { png64: self.icons[self.iconID] };
-					ret.bgcolor = (self.isDay ? rgb(200,200,200): rgb(16,16,16));
-					ret.color = (self.isDay ? rgb(32,32,32) : rgb(168,168,168));
+					ret.bgcolor = (self.isDay ? self.rgb(200,200,200): self.rgb(16,16,16));
+					ret.color = (self.isDay ? self.rgb(32,32,32) : self.rgb(168,168,168));
 				}
 				if (ret) {
 					return ret;
@@ -205,7 +204,7 @@ instance.prototype.init_presets = function () {
 				style: 'png',
 				text: '$(ow:c_text)\\n$(ow:c_temp)',
 				size: '18',
-				color: rgb(255,255,255),
+				color: self.rgb(255,255,255),
 				bgcolor: 0
 			},
 			actions: [
