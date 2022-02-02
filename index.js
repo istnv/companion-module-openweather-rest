@@ -142,7 +142,7 @@ instance.prototype.init_actions = function () {
 
 	var self = this;
 
-	self.system.emit('instance_actions', self.id, {
+	self.setActions({
 		'refresh': { label: 'Refresh weather display' }
 	});
 };
