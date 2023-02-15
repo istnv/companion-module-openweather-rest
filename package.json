@@ -1,26 +1,20 @@
 {
 	"name": "openweather-rest",
-	"version": "1.0.3",
-	"api_version": "1.0.0",
-	"keywords": [
-		"weather"
-	],
-	"shortname": "ow",
-	"description": "Weather display using OpenWeather.com",
-	"main": "index.js",
-	"manufacturer": "OpenWeather",
-	"product": "Current Weather",
+	"version": "2.0.0",
+	"type": "module",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
+	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/bitfocus/companion-module-openweather-rest.git"
 	},
-	"author": "John A Knight, Jr",
-	"license": "MIT",
-	"bugs": {
-		"url": "https://github.com/bitfocus/companion-module-openweather-rest/issues"
+	"dependencies": {
+		"@companion-module/base": "~1.1.1",
+		"node-rest-client": "^3.1.1"
 	},
-	"homepage": "https://github.com/bitfocus/companion-module-openweather-rest#readme"
+	"devDependencies": {
+		"@companion-module/tools": "^1.0.0"
+	}
 }

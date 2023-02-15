@@ -2,8 +2,7 @@
 
 Weather information module for Bitfocus Companion
 
-Companion is a really nice bit of open source software which extends the functionality
-of Elgato Streamdeck devices.
+Companion is a really nice bit of open source software which extends the functionality of Elgato Streamdeck devices.
 
 * **Companion**: https://bitfocus.io/companion/
 * **Streamdeck**: https://www.elgato.com/en/gaming/stream-deck
