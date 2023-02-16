@@ -2,12 +2,9 @@
 
 // OpenWeather.com interface
 
-// var rest_client 	= require('node-rest-client').Client;
-// var sharp			= require('sharp');
 import { combineRgb, Regex } from '@companion-module/base'
 import { runEntrypoint, InstanceBase, InstanceStatus } from '@companion-module/base'
-import sharp from 'sharp'
-//const  sharp  = pkg;
+import Jimp from 'jimp'
 import { UpgradeScripts } from './upgrades.js'
 import rest_pkg from 'node-rest-client'
 const rest_client = rest_pkg.Client
@@ -134,6 +131,15 @@ class OWInstance extends InstanceBase {
 					{ id: 'm', label: 'Celsius and kPH' },
 				],
 			},
+			{
+				type: 'textinput',
+				id: 'refresh',
+				label: 'Refresh Frequency',
+				tooltip: 'Reload current weather after # of minutes',
+				width: 6,
+				default: '20',
+				regex: Regex.NUMBER,
+			},
 		]
 		return configs
 	}
@@ -200,6 +206,7 @@ class OWInstance extends InstanceBase {
 			current: {},
 			forecast: {},
 		}
+		this.update = this.config.refresh * 60000
 		this.lastPolled = 0
 		this.icons = {}
 		this.iconID = ''
@@ -290,7 +297,7 @@ class OWInstance extends InstanceBase {
 	 * @since 2.0.0
 	 */
 	pulse(self) {
-		let short = self.lastPolled + 20 * 60000 - Date.now()
+		let short = self.lastPolled + self.update - Date.now()
 		// if over 20 minutes then refresh
 		if (short <= 0) {
 			self.refresh()
@@ -318,7 +325,7 @@ class OWInstance extends InstanceBase {
 						self.hasError = true
 					} else if (response.statusCode == 200) {
 						self.updateStatus(InstanceStatus.Ok, 'Connected')
-						//self.log('info','Weather data updated')
+						self.log('info','Weather data updated')
 						self.update_variables(data)
 					} else {
 						self.log('error', data.message)
@@ -431,13 +438,13 @@ class OWInstance extends InstanceBase {
 				self.client
 					.get(`http://openweathermap.org/img/wn/${code}@2x.png`, function (data, response) {
 						if (response.statusCode == 200) {
-							sharp(Buffer.from(data))
-								.resize(72, 72)
-								.png()
-								.toBuffer(function (err, buffer) {
+							Jimp.read(Buffer.from(data)).then((image) => {
+								image.resize(72, 72)
+								.getBuffer(Jimp.MIME_PNG, function (err, buffer) {
 									self.icons[code] = buffer.toString('base64')
 									self.checkFeedbacks('icon')
 								})
+							})
 						}
 						// self.icons[code] = data.toString('base64');
 						// self.checkFeedbacks('icon');}
