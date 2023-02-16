@@ -210,7 +210,8 @@ class OWInstance extends InstanceBase {
 		this.lastPolled = 0
 		this.icons = {}
 		this.iconID = ''
-		this.mph = 'i' != this.config.units
+		this.mph = 'i' == this.config.units
+		this.units = this.mph  ? 'imperial' : 'metric'
 		this.hasError = false
 		for (let i in VARIABLE_LIST) {
 			vars.push({ variableId: i, name: VARIABLE_LIST[i].description })
@@ -310,12 +311,11 @@ class OWInstance extends InstanceBase {
 	 * @since 2.0.0
 	 */
 	refresh() {
-		let units = this.config.units == 'i' ? 'imperial' : 'metric'
 		let self = this
 
 		// Only query if more than 1 minute since last poll
 		if (!self.hasError && self.lastPolled + 60000 <= Date.now()) {
-			let url = `${BASE_URL}?q=${self.config.location}&units=${units}&appid=${self.config.apikey}`
+			let url = `${BASE_URL}?q=${self.config.location}&units=${self.units}&appid=${self.config.apikey}`
 			self.lastPolled = Date.now()
 			self.client
 				.get(url, function (data, response) {
@@ -325,7 +325,7 @@ class OWInstance extends InstanceBase {
 						self.hasError = true
 					} else if (response.statusCode == 200) {
 						self.updateStatus(InstanceStatus.Ok, 'Connected')
-						self.log('info','Weather data updated')
+						//self.log('info','Weather data updated')
 						self.update_variables(data)
 					} else {
 						self.log('error', data.message)
@@ -436,15 +436,14 @@ class OWInstance extends InstanceBase {
 			} else {
 				// retrieve icon
 				self.client
-					.get(`http://openweathermap.org/img/wn/${code}@2x.png`, function (data, response) {
+					.get(`http://openweathermap.org/img/wn/${code}@2x.png`, async function (data, response) {
 						if (response.statusCode == 200) {
-							Jimp.read(Buffer.from(data)).then((image) => {
-								image.resize(72, 72)
-								.getBuffer(Jimp.MIME_PNG, function (err, buffer) {
-									self.icons[code] = buffer.toString('base64')
-									self.checkFeedbacks('icon')
-								})
-							})
+							const image = await Jimp.read(Buffer.from(data))
+							const png = await image
+								.scaleToFit(72, 72)
+								.getBase64Async(Jimp.MIME_PNG)
+							self.icons[code] = png
+							self.checkFeedbacks('icon')
 						}
 						// self.icons[code] = data.toString('base64');
 						// self.checkFeedbacks('icon');}
