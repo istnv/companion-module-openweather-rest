@@ -173,7 +173,7 @@ class OWInstance extends InstanceBase {
 		const feedbacks = {
 			icon: {
 				type: 'advanced',
-				label: 'Current Condition Icon',
+				name: 'Current Condition Icon',
 				description: 'Change background to icon of current weather',
 				options: [],
 				callback: function (feedback, bank) {
