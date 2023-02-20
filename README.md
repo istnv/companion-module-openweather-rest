@@ -7,7 +7,7 @@ Companion is a really nice bit of open source software which extends the functio
 * **Companion**: https://bitfocus.io/companion/
 * **Streamdeck**: https://www.elgato.com/en/gaming/stream-deck
 
-Do you want current weather information on a Companion button?<br>
+Stuck inside a dark theater or ballroom? See 'outside' with current weather information on a Companion button!<br>
 This module requires an active internet connection and you will need your own API key from <a href="https://openweathermap.org/home/sign_up" title="OpenWeather">OpenWeather.com</a>
 
 ## Feedback
