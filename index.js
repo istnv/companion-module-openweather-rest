@@ -111,7 +111,7 @@ class OWInstance extends InstanceBase {
 				label: 'API Key',
 				width: 12,
 				tooltip: 'Enter your API Key from OpenWeather.com.',
-				regex: this.REGEX_HEX
+				regex: this.REGEX_HEX,
 			},
 			{
 				type: 'textinput',
@@ -152,7 +152,7 @@ class OWInstance extends InstanceBase {
 	init_actions() {
 		this.setActionDefinitions({
 			refresh: {
-				name : 'Refresh',
+				name: 'Refresh',
 				options: [],
 				callback: async (action, context) => {
 					this.refresh()
@@ -211,7 +211,7 @@ class OWInstance extends InstanceBase {
 		this.icons = {}
 		this.iconID = ''
 		this.mph = 'i' == this.config.units
-		this.units = this.mph  ? 'imperial' : 'metric'
+		this.units = this.mph ? 'imperial' : 'metric'
 		this.hasError = false
 		for (let i in VARIABLE_LIST) {
 			vars.push({ variableId: i, name: VARIABLE_LIST[i].description })
@@ -273,7 +273,7 @@ class OWInstance extends InstanceBase {
 
 		// only connect when API key is defined
 		if (this.config.apikey === undefined || this.config.apikey == '') {
-			this.updateStatus(InstanceStatus.BadConfig, "Missing API key")
+			this.updateStatus(InstanceStatus.BadConfig, 'Missing API key')
 			return
 		}
 
@@ -374,7 +374,22 @@ class OWInstance extends InstanceBase {
 					dv = data[v[i].data]
 					break
 				case 'main':
-					dv = Math.floor(data.main[v[i].data] + 0.49) + C_DEGREE
+					switch (i) {
+						case 'c_press':
+							if (this.mph) { // inHg
+								dv = Math.floor((data.main[v[i].data] / 33.863886666667) * 100)
+							} else {
+								// mmHg
+								dv = Math.floor((data.main[v[i].data] / 133.322387415) * 100)
+							}
+							dv = parseFloat(dv / 100)
+							break
+						case 'c_humid':
+							dv = data.main[v[i].data] + '%'
+							break
+						default:
+							dv = Math.floor(data.main[v[i].data] + 0.49) + C_DEGREE
+					}
 					break
 				case 'sys':
 				case 'wind':
@@ -439,9 +454,7 @@ class OWInstance extends InstanceBase {
 					.get(`http://openweathermap.org/img/wn/${code}@2x.png`, async function (data, response) {
 						if (response.statusCode == 200) {
 							const image = await Jimp.read(Buffer.from(data))
-							const png = await image
-								.scaleToFit(72, 72)
-								.getBase64Async(Jimp.MIME_PNG)
+							const png = await image.scaleToFit(72, 72).getBase64Async(Jimp.MIME_PNG)
 							self.icons[code] = png
 							self.checkFeedbacks('icon')
 						}
@@ -456,7 +469,6 @@ class OWInstance extends InstanceBase {
 			}
 		}
 	}
-
 }
 
 runEntrypoint(OWInstance, UpgradeScripts)
