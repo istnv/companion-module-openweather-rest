@@ -32,6 +32,8 @@ export const VARIABLE_LIST = {
 	c_sunset: { description: 'Sunset', section: 'time', data: 'sys.sunset' },
 	c_temp: { description: 'Temperature', section: 'main', data: 'temp' },
 	c_feels: { description: 'Feels like', section: 'main', data: 'feels_like' },
+	c_humid: { description: 'Humidity %', section: 'main', data: 'humidity'},
+	c_press: { description: 'Pressure', section: 'main', data: 'pressure'},
 	c_day: { description: 'Is it daytime?', section: 'internal' },
 	c_text: { description: 'Conditions', section: 'weather', data: 'main' },
 	c_wind: { description: 'Wind speed', section: 'wind', data: 'speed' },
