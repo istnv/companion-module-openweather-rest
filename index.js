@@ -22,6 +22,20 @@ import { BASE_URL, C_DEGREE, C_WINDIR, VARIABLE_LIST } from './constants.js'
  */
 class OWInstance extends InstanceBase {
 	/**
+	 * add leading zeros to num, trim to len
+	 * -- this will truncate num if it has more than 'len' digits
+	 *
+	 * @param {*} num
+	 * @param {*} len
+	 * @returns
+	 */
+
+	pad0(num, len = 2) {
+		const zeros = '0'.repeat(len)
+		return (zeros + num).slice(-len)
+	}
+
+	/**
 	 * Create an instance of the openweather-api module
 	 *
 	 * @param {Object} internal - holds the instance ID and flags
@@ -164,10 +178,9 @@ class OWInstance extends InstanceBase {
 	/**
 	 * Generate the feedbacks available
 	 *
-	 * @param {Object} self - 'this' from the module's context
 	 * @since 2.0.0
 	 */
-	init_feedbacks(self) {
+	init_feedbacks() {
 		// only one, replace button 'background' with
 		// the recommended Icon from OpenWeather
 		const feedbacks = {
@@ -176,12 +189,12 @@ class OWInstance extends InstanceBase {
 				name: 'Current Condition Icon',
 				description: 'Change background to icon of current weather',
 				options: [],
-				callback: function (feedback, bank) {
+				callback: async (feedback, bank) => {
 					let ret
-					if (self.icons[self.iconID]) {
-						ret = { png64: self.icons[self.iconID] }
-						ret.bgcolor = self.isDay ? combineRgb(200, 200, 200) : combineRgb(16, 16, 16)
-						ret.color = self.isDay ? combineRgb(32, 32, 32) : combineRgb(168, 168, 168)
+					if (this.icons[this.iconID]) {
+						ret = { png64: this.icons[this.iconID] }
+						ret.bgcolor = this.isDay ? combineRgb(200, 200, 200) : combineRgb(16, 16, 16)
+						ret.color = this.isDay ? combineRgb(32, 32, 32) : combineRgb(168, 168, 168)
 					}
 					if (ret) {
 						return ret
@@ -260,8 +273,6 @@ class OWInstance extends InstanceBase {
 	 * @since 2.0.0
 	 */
 	init_connection() {
-		let self = this
-
 		if (this.client) {
 			delete this.client
 		}
@@ -285,8 +296,8 @@ class OWInstance extends InstanceBase {
 		})
 
 		// check every minute
-		this.heartbeat = setInterval(function () {
-			self.pulse(self)
+		this.heartbeat = setInterval(() => {
+			this.pulse()
 		}, 60000)
 		// starting now :)
 		this.refresh()
@@ -297,11 +308,11 @@ class OWInstance extends InstanceBase {
 	 *
 	 * @since 2.0.0
 	 */
-	pulse(self) {
-		let short = self.lastPolled + self.update - Date.now()
+	pulse() {
+		let short = this.lastPolled + this.update - Date.now()
 		// if over 20 minutes then refresh
 		if (short <= 0) {
-			self.refresh()
+			this.refresh()
 		}
 	}
 
@@ -311,33 +322,31 @@ class OWInstance extends InstanceBase {
 	 * @since 2.0.0
 	 */
 	refresh() {
-		let self = this
-
 		// Only query if more than 1 minute since last poll
-		if (!self.hasError && self.lastPolled + 60000 <= Date.now()) {
-			let url = `${BASE_URL}?q=${self.config.location}&units=${self.units}&appid=${self.config.apikey}`
-			self.lastPolled = Date.now()
-			self.client
-				.get(url, function (data, response) {
+		if (!this.hasError && this.lastPolled + 60000 <= Date.now()) {
+			let url = `${BASE_URL}?q=${this.config.location}&units=${this.units}&appid=${this.config.apikey}`
+			this.lastPolled = Date.now()
+			this.client
+				.get(url, (data, response) => {
 					if (data.error) {
-						self.log('error', data.error.message)
-						self.updateStatus(InstanceStatus.UnknownError, data.error.message)
-						self.hasError = true
+						this.log('error', data.error.message)
+						this.updateStatus(InstanceStatus.UnknownError, data.error.message)
+						this.hasError = true
 					} else if (response.statusCode == 200) {
-						self.updateStatus(InstanceStatus.Ok, 'Connected')
-						//self.log('info','Weather data updated')
-						self.update_variables(data)
+						this.updateStatus(InstanceStatus.Ok, 'Connected')
+						//this.log('info','Weather data updated')
+						this.update_variables(data)
 					} else {
-						self.log('error', data.message)
-						self.updateStatus(InstanceStatus.UnknownError, data.message)
-						self.init_vars()
-						self.setVariableValues({ l_name: data.message })
+						this.log('error', data.message)
+						this.updateStatus(InstanceStatus.UnknownError, data.message)
+						this.init_vars()
+						this.setVariableValues({ l_name: data.message })
 					}
 				})
-				.on('error', function (err) {
+				.on('error', (err) => {
 					let emsg = err.message
-					self.log('error', emsg)
-					self.updateStatus(InstanceStatus.Error, emsg)
+					this.log('error', emsg)
+					this.updateStatus(InstanceStatus.Error, emsg)
 				})
 		}
 	}
@@ -348,23 +357,22 @@ class OWInstance extends InstanceBase {
 	 * @param {Object} data - information returned from the API
 	 * @since 2.0.0
 	 */
-	update_variables = function (data) {
-		let self = this
-
+	update_variables (data) {
 		let v = VARIABLE_LIST
 		let dv = ''
 		let dt = data.dt
 		let tz = data.timezone
+		const p0 = this.pad0
 
-		self.weather = data
+		this.weather = data
 
-		// Additional 'date' formatting funcitons
+		// Additional 'date' formatting functions
 		Date.prototype.toHHMM = function () {
-			return ('00' + this.getHours()).slice(-2) + ':' + ('00' + this.getMinutes()).slice(-2)
+			return p0(this.getHours()) + ':' + p0(this.getMinutes())
 		}
 
 		Date.prototype.toMMDD_HHMM = function () {
-			return ('00' + (this.getMonth() + 1)).slice(-2) + '-' + ('00' + this.getDate()).slice(-2) + ' ' + this.toHHMM()
+			return p0(this.getMonth() + 1) + '-' + p0(this.getDate()) + ' ' + this.toHHMM()
 		}
 
 		for (let i in v) {
@@ -376,7 +384,8 @@ class OWInstance extends InstanceBase {
 				case 'main':
 					switch (i) {
 						case 'c_press':
-							if (this.mph) { // inHg
+							if (this.mph) {
+								// inHg
 								dv = Math.floor((data.main[v[i].data] / 33.863886666667) * 100)
 							} else {
 								// mmHg
@@ -428,7 +437,7 @@ class OWInstance extends InstanceBase {
 				case 'forecast':
 					break
 			}
-			self.setVariableValues({ [i]: dv })
+			this.setVariableValues({ [i]: dv })
 		}
 	}
 
@@ -439,32 +448,31 @@ class OWInstance extends InstanceBase {
 	 * @since 2.0.0
 	 */
 
-	update_graphic = function (cond) {
+	update_graphic (cond) {
 		const code = cond[0].icon
-		let self = this
 
-		if (code != self.iconID) {
-			self.iconID = code
+		if (code != this.iconID) {
+			this.iconID = code
 			// cached?
-			if (self.icons[code]) {
-				self.checkFeedbacks('icon')
+			if (this.icons[code]) {
+				this.checkFeedbacks('icon')
 			} else {
 				// retrieve icon
-				self.client
-					.get(`http://openweathermap.org/img/wn/${code}@2x.png`, async function (data, response) {
+				this.client
+					.get(`http://openweathermap.org/img/wn/${code}@2x.png`, async (data, response) => {
 						if (response.statusCode == 200) {
 							const image = await Jimp.read(Buffer.from(data))
 							const png = await image.scaleToFit(72, 72).getBase64Async(Jimp.MIME_PNG)
-							self.icons[code] = png
-							self.checkFeedbacks('icon')
+							this.icons[code] = png
+							this.checkFeedbacks('icon')
 						}
-						// self.icons[code] = data.toString('base64');
-						// self.checkFeedbacks('icon');}
+						// this.icons[code] = data.toString('base64');
+						// this.checkFeedbacks('icon');}
 					})
 					.on('error', function (err) {
 						let emsg = err.message
-						self.log('error', emsg)
-						self.updateStatus(InstanceStatus.Error, emsg)
+						this.log('error', emsg)
+						this.updateStatus(InstanceStatus.Error, emsg)
 					})
 			}
 		}
