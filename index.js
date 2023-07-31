@@ -224,7 +224,6 @@ class OWInstance extends InstanceBase {
 		this.icons = {}
 		this.iconID = ''
 		this.mph = 'i' == this.config.units
-		this.units = this.mph ? 'imperial' : 'metric'
 		this.hasError = false
 		for (let i in VARIABLE_LIST) {
 			vars.push({ variableId: i, name: VARIABLE_LIST[i].description })
@@ -290,7 +289,7 @@ class OWInstance extends InstanceBase {
 
 		this.updateStatus(InstanceStatus.Connecting)
 
-		this.client.on('error', function (err) {
+		this.client.on('error', (err) => {
 			this.updateStatus(InstanceStatus.ConnectionFailure, err)
 			this.hasError = true
 		})
@@ -324,7 +323,7 @@ class OWInstance extends InstanceBase {
 	refresh() {
 		// Only query if more than 1 minute since last poll
 		if (!this.hasError && this.lastPolled + 60000 <= Date.now()) {
-			let url = `${BASE_URL}?q=${this.config.location}&units=${this.units}&appid=${this.config.apikey}`
+			let url = `${BASE_URL}?q=${this.config.location}&appid=${this.config.apikey}`
 			this.lastPolled = Date.now()
 			this.client
 				.get(url, (data, response) => {
@@ -357,10 +356,11 @@ class OWInstance extends InstanceBase {
 	 * @param {Object} data - information returned from the API
 	 * @since 2.0.0
 	 */
-	update_variables (data) {
+	update_variables(data) {
 		let v = VARIABLE_LIST
 		let dv = ''
 		let dt = data.dt
+		let vars = {}
 		let tz = data.timezone
 		const p0 = this.pad0
 
@@ -375,37 +375,97 @@ class OWInstance extends InstanceBase {
 			return p0(this.getMonth() + 1) + '-' + p0(this.getDate()) + ' ' + this.toHHMM()
 		}
 
+		function kelvinToUnit(units, p) {
+			let ret
+
+			switch (units) {
+				case 'f':
+					ret = Math.floor(((p - 273.15) * 9) / 5 + 32.49) + C_DEGREE
+					break
+				case 'c':
+					ret = Math.floor(p - 273.15 + 0.49) + C_DEGREE
+					break
+				default:
+					ret = Math.floor(p + 0.49) + C_DEGREE
+			}
+			return ret
+		}
+
+		function hpaToUnit(units, p) {
+			let ret
+
+			switch (units) {
+				case 'i':
+					ret = parseFloat(Math.floor((p / 33.863886666667) * 100) / 100)
+					break
+				case 'm':
+					ret = Math.floor((p / 133.322387415) * 100)
+					break
+				default:
+					ret = p
+					break
+			}
+			return ret
+		}
+		function speedToUnit(units, p) {
+			let ret = p
+			switch (units) {
+				case 'm':
+					ret = Math.floor(p * 100 + 0.49) / 100
+					break
+				case 'i':
+					ret = Math.floor(p * 22.3694 + 0.49) / 10
+					break
+			}
+			return ret
+		}
+
 		for (let i in v) {
 			let k = v[i].section
+			let p = (data[k] ? data[k][v[i].data]: data[v[i].data])
 			switch (k) {
 				case '':
 					dv = data[v[i].data]
 					break
+				case 'local':
+					switch (i) {
+						case 'c_feels':
+						case 'c_temp':
+							dv = kelvinToUnit(this.mph ? 'f' : 'c', data.main[v[i].data])
+							break
+						case 'c_press':
+							dv = hpaToUnit(this.mph ? 'i' : 'm', data.main[v[i].data])
+							break
+						case 'c_wind':
+							dv = speedToUnit(this.mph ? 'i' : 'm', data.wind[v[i].data])
+							break
+					}
+					break
 				case 'main':
 					switch (i) {
-						case 'c_press':
-							if (this.mph) {
-								// inHg
-								dv = Math.floor((data.main[v[i].data] / 33.863886666667) * 100)
-							} else {
-								// mmHg
-								dv = Math.floor((data.main[v[i].data] / 133.322387415) * 100)
-							}
-							dv = parseFloat(dv / 100)
+						case 'c_inhg':
+						case 'c_mmhg':
+						case 'c_hpa':
+							dv = hpaToUnit(i.slice(2, 3), p)
 							break
 						case 'c_humid':
-							dv = data.main[v[i].data] + '%'
+							dv = p + '%'
 							break
-						default:
-							dv = Math.floor(data.main[v[i].data] + 0.49) + C_DEGREE
+						case 'c_tempk':
+						case 'c_feelk':
+						case 'c_tempc':
+						case 'c_feelc':
+						case 'c_tempf':
+						case 'c_feelf':
+							dv = kelvinToUnit(i.slice(-1), p)
+							break
 					}
 					break
 				case 'sys':
-				case 'wind':
 					dv = data[k][v[i].data]
-					if (i == 'c_wind') {
-						dv = Math.floor(dv * 10 + 4.9) / 10
-					}
+					break
+				case 'wind':
+					dv = speedToUnit(i.slice(-1),data[k][v[i].data])
 					break
 				case 'weather':
 					dv = data.weather[0][v[i].data]
@@ -437,8 +497,9 @@ class OWInstance extends InstanceBase {
 				case 'forecast':
 					break
 			}
-			this.setVariableValues({ [i]: dv })
+			vars[i] = dv
 		}
+		this.setVariableValues(vars)
 	}
 
 	/**
@@ -448,7 +509,7 @@ class OWInstance extends InstanceBase {
 	 * @since 2.0.0
 	 */
 
-	update_graphic (cond) {
+	update_graphic(cond) {
 		const code = cond[0].icon
 
 		if (code != this.iconID) {
@@ -469,7 +530,7 @@ class OWInstance extends InstanceBase {
 						// this.icons[code] = data.toString('base64');
 						// this.checkFeedbacks('icon');}
 					})
-					.on('error', function (err) {
+					.on('error', (err) => {
 						let emsg = err.message
 						this.log('error', emsg)
 						this.updateStatus(InstanceStatus.Error, emsg)
